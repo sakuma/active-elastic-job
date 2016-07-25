@@ -171,12 +171,15 @@ module ActiveJob
         end
 
         def aws_sqs_client
-          @aws_key ||= ENV['AWS_SECRET_ACCESS_KEY'] || ENV['AWS_SECRET_KEY'] || ENV['AMAZON_SECRET_ACCESS_KEY']
-          @aws_sqs_client ||= Aws::SQS::Client.new(
-            access_key_id: ENV['AWS_ACCESS_KEY_ID'],
-            secret_access_key: @aws_key,
-            region: ENV['AWS_REGION']
-          )
+          options = { region: ENV['AWS_REGION'] }
+          unless ENV['USING_AWS_CREDENTIALS'] == "true"
+            @aws_key ||= ENV['AWS_SECRET_ACCESS_KEY'] || ENV['AWS_SECRET_KEY'] || ENV['AMAZON_SECRET_ACCESS_KEY']
+            options.merge!(
+              access_key_id: ENV['AWS_ACCESS_KEY_ID'],
+              secret_access_key: @aws_key,
+            )
+          end
+          @aws_sqs_client ||= Aws::SQS::Client.new(options)
         end
 
         def message_digest(messsage_body)
